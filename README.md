@@ -31,8 +31,6 @@ This project implements a **cloud-native, scalable batch ingestion pipeline** th
                     Azure ADLS Gen2
                   (Central Data Lake)
 ```
-
-> 📸 **Screenshot Needed:** High-level architecture diagram from Azure Portal or a tool like draw.io
 > → `docs/screenshots/architecture-overview.png` <img width="1337" height="447" alt="image" src="https://github.com/user-attachments/assets/a1974369-bb61-488d-b98a-a5562aac4339" />
 
 
@@ -102,14 +100,18 @@ The ADF pipeline automates batch data movement from AWS S3 to ADLS Gen2 using:
 - **Parameterized pipelines** for dynamic source/sink paths
 - **Scheduled triggers** for fully automated daily batch runs
 
-> 📸 **Screenshot Needed:** ADF pipeline canvas showing Copy Activity flow
-> → `docs/screenshots/adf-pipeline-canvas.png`
+> ADF pipeline canvas showing Copy Activity flow
+> <img width="1600" height="844" alt="WhatsApp Image 2026-04-21 at 01 46 04" src="https://github.com/user-attachments/assets/a6737672-dbf0-4aa6-a807-dd3137448cf8" />
 
-> 📸 **Screenshot Needed:** ADF Linked Services configuration page
-> → `docs/screenshots/adf-linked-services.png`
 
-> 📸 **Screenshot Needed:** ADF trigger schedule configuration
-> → `docs/screenshots/adf-trigger-schedule.png`
+
+> ADF Linked Services configuration page
+> <img width="1600" height="845" alt="WhatsApp Image 2026-04-21 at 01 46 03 (1)" src="https://github.com/user-attachments/assets/e1bae334-203d-4f50-b81d-5b034683ecf0" />
+
+
+> ADF trigger schedule configuration
+><img width="1600" height="813" alt="WhatsApp Image 2026-04-21 at 01 46 03" src="https://github.com/user-attachments/assets/aaca1572-7494-49bb-9e4f-3e98784f0183" />
+
 
 ---
 
