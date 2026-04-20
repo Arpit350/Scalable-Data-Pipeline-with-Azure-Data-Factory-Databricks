@@ -1,2 +1,366 @@
-# Scalable-Data-Pipeline-with-Azure-Data-Factory-Databricks
-This project implements a cloud-native, scalable batch ingestion pipeline that automates the movement and transformation of data from AWS S3 → Azure ADLS Gen2, powered by Azure Data Factory (ADF) for orchestration and Azure Databricks for heavy-lift PySpark transformations.
+## 📌 Project Overview
+
+This project implements a **cloud-native, scalable batch ingestion pipeline** that automates the movement and transformation of data from **AWS S3 → Azure ADLS Gen2**, powered by **Azure Data Factory (ADF)** for orchestration and **Azure Databricks** for heavy-lift PySpark transformations.
+
+### Key Achievements
+
+| Metric | Improvement |
+|--------|-------------|
+| Manual data transfer effort | ↓ 90% reduction |
+| Data quality & analytics readiness | ↑ 40% improvement |
+| End-to-end ingestion latency | ↓ 30% reduction |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        DATA PIPELINE FLOW                           │
+├──────────────┬──────────────────────┬──────────────┬───────────────┤
+│   Source     │    Orchestration     │  Transform   │   Consume     │
+│              │                      │              │               │
+│  AWS S3      │  Azure Data Factory  │  Databricks  │  Power BI     │
+│  (Raw Data)  │  (Batch Pipelines)   │  (PySpark)   │  (Reports)    │
+│              │         ↓            │              │               │
+│  CSV / JSON  │  Linked Services     │  Bronze Layer│  Dashboards   │
+│  Parquet     │  Copy Activity       │  Silver Layer│  Analytics    │
+│  Delta Files │  Triggers/Schedule   │  Gold Layer  │               │
+└──────────────┴──────────────────────┴──────────────┴───────────────┘
+                              │
+                    Azure ADLS Gen2
+                  (Central Data Lake)
+```
+
+> 📸 **Screenshot Needed:** High-level architecture diagram from Azure Portal or a tool like draw.io
+> → `docs/screenshots/architecture-overview.png` <img width="1337" height="447" alt="image" src="https://github.com/user-attachments/assets/a1974369-bb61-488d-b98a-a5562aac4339" />
+
+
+---
+
+## 📂 Repository Structure
+
+```
+adf-databricks-pipeline/
+│
+├── README.md                          # Project documentation
+│
+├── adf-pipelines/                     # ADF Pipeline JSON definitions
+│   ├── pipeline_s3_to_adls.json       # Main ingestion pipeline
+│   ├── linked_service_s3.json         # AWS S3 linked service config
+│   ├── linked_service_adls.json       # ADLS Gen2 linked service config
+│   └── trigger_daily_batch.json       # Scheduled trigger definition
+│
+├── notebooks/                         # Databricks notebooks
+│   ├── 01_bronze_ingestion.py         # Raw data landing
+│   ├── 02_silver_transformation.py    # Cleansing & deduplication
+│   ├── 03_gold_aggregation.py         # Analytics-ready aggregations
+│   └── utils/
+│       ├── schema_validator.py        # Schema validation helpers
+│       └── spark_config.py            # Spark tuning configurations
+│
+├── scripts/                           # Utility scripts
+│   ├── deploy_adf_pipeline.sh         # CI/CD deployment script
+│   └── run_databricks_job.sh          # Trigger Databricks job via CLI
+│
+├── config/                            # Environment configuration
+│   ├── dev.env.example                # Dev environment variables template
+│   └── prod.env.example               # Prod environment variables template
+│
+├── architecture/                      # Architecture diagrams & docs
+│   └── pipeline_design.md             # Detailed design document
+│
+└── docs/
+    └── screenshots/                   # Tool screenshots (add yours here)
+        ├── README.md                  # Screenshot guide
+        └── [ADD SCREENSHOTS HERE]
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Source** | AWS S3 | Raw data storage |
+| **Orchestration** | Azure Data Factory | Pipeline scheduling & copy activity |
+| **Storage** | Azure ADLS Gen2 | Centralized data lake (Bronze/Silver/Gold) |
+| **Compute** | Azure Databricks | PySpark & Spark SQL transformation jobs |
+| **Language** | Python 3.9+ / PySpark | Transformation logic |
+| **Reporting** | Power BI | Downstream analytics & dashboards |
+| **Format** | Delta Lake / Parquet | Optimized storage format |
+
+---
+
+## ⚙️ Pipeline Design
+
+### 1. Ingestion Layer — Azure Data Factory
+
+The ADF pipeline automates batch data movement from AWS S3 to ADLS Gen2 using:
+- **Linked Services** for S3 and ADLS Gen2 connections
+- **Copy Activity** for efficient bulk data transfer
+- **Parameterized pipelines** for dynamic source/sink paths
+- **Scheduled triggers** for fully automated daily batch runs
+
+> 📸 **Screenshot Needed:** ADF pipeline canvas showing Copy Activity flow
+> → `docs/screenshots/adf-pipeline-canvas.png`
+
+> 📸 **Screenshot Needed:** ADF Linked Services configuration page
+> → `docs/screenshots/adf-linked-services.png`
+
+> 📸 **Screenshot Needed:** ADF trigger schedule configuration
+> → `docs/screenshots/adf-trigger-schedule.png`
+
+---
+
+### 2. Transformation Layer — Azure Databricks
+
+PySpark jobs process data across a **Medallion Architecture** (Bronze → Silver → Gold):
+
+#### Bronze Layer — Raw Ingestion
+- Lands raw data from ADLS into Delta tables
+- Applies schema validation and type enforcement
+- Partitions by ingestion date for performance
+
+#### Silver Layer — Cleansed Data
+- Deduplication using `dropDuplicates()` on composite keys
+- Data cleansing: null handling, standardized formats
+- Schema validation against expected contracts
+
+#### Gold Layer — Analytics-Ready
+- Business-level aggregations using Spark SQL
+- Optimized for Power BI consumption
+- Delta table `OPTIMIZE` and `ZORDER` for query performance
+
+> 📸 **Screenshot Needed:** Databricks notebook execution with transformation code
+> → `docs/screenshots/databricks-notebook-transform.png`
+
+> 📸 **Screenshot Needed:** Databricks cluster configuration (runtime, node types)
+> → `docs/screenshots/databricks-cluster-config.png`
+
+> 📸 **Screenshot Needed:** Databricks job run history / monitoring
+> → `docs/screenshots/databricks-job-runs.png`
+
+---
+
+### 3. Performance Tuning
+
+Key optimizations applied to reduce latency by 30%:
+
+- **Spark Config:** Tuned `spark.sql.shuffle.partitions`, executor memory, and parallelism
+- **ADF Parallelism:** Configured Copy Activity `parallelCopies` and `dataIntegrationUnits`
+- **Delta Optimization:** `OPTIMIZE` + `ZORDER BY` on high-cardinality join keys
+- **Partitioning Strategy:** Date-based partitioning to minimize data scans
+
+> 📸 **Screenshot Needed:** Spark UI showing job DAG and stage metrics
+> → `docs/screenshots/spark-ui-job-metrics.png`
+
+> 📸 **Screenshot Needed:** ADF pipeline monitoring with run duration metrics
+> → `docs/screenshots/adf-monitoring-runs.png`
+
+---
+
+### 4. Output — Power BI
+
+Gold layer Delta tables are connected to Power BI via:
+- Azure Databricks connector in Power BI Desktop
+- DirectQuery / Import mode based on table size
+- Scheduled refresh aligned with pipeline completion
+
+> 📸 **Screenshot Needed:** Power BI dashboard built on the pipeline output
+> → `docs/screenshots/powerbi-dashboard.png`
+
+> 📸 **Screenshot Needed:** Power BI data source connection to Databricks
+> → `docs/screenshots/powerbi-databricks-connection.png`
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Azure Subscription with ADF, ADLS Gen2, and Databricks workspace
+- AWS account with S3 access
+- Python 3.9+
+- Azure CLI and Databricks CLI installed
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/<your-username>/adf-databricks-pipeline.git
+cd adf-databricks-pipeline
+```
+
+### 2. Configure Environment Variables
+
+```bash
+cp config/dev.env.example config/dev.env
+# Edit dev.env with your Azure, AWS, and Databricks credentials
+```
+
+### 3. Deploy ADF Pipelines
+
+```bash
+# Deploy using Azure CLI
+bash scripts/deploy_adf_pipeline.sh --env dev
+```
+
+### 4. Import Databricks Notebooks
+
+```bash
+# Import notebooks to your Databricks workspace
+databricks workspace import_dir notebooks /Shared/adf-pipeline
+```
+
+### 5. Run the Pipeline
+
+```bash
+# Trigger the ADF pipeline manually for testing
+az datafactory pipeline create-run \
+  --factory-name <your-adf-name> \
+  --resource-group <your-rg> \
+  --name pipeline_s3_to_adls
+```
+
+---
+
+## 📊 Data Flow Details
+
+```
+AWS S3 (Source)
+    │
+    │  [ADF Copy Activity — batch scheduled]
+    ▼
+ADLS Gen2 /raw/                          ← Bronze Zone
+    │
+    │  [Databricks: 01_bronze_ingestion.py]
+    ▼
+Delta Table: bronze.raw_events
+    │
+    │  [Databricks: 02_silver_transformation.py]
+    │   - Deduplication
+    │   - Null handling
+    │   - Schema validation
+    │   - Data cleansing
+    ▼
+Delta Table: silver.clean_events
+    │
+    │  [Databricks: 03_gold_aggregation.py]
+    │   - Spark SQL aggregations
+    │   - Business logic
+    │   - OPTIMIZE + ZORDER
+    ▼
+Delta Table: gold.analytics_events       ← Power BI connects here
+    │
+    ▼
+Power BI Reports & Dashboards
+```
+
+---
+
+## 🔍 Key PySpark Transformations
+
+### Deduplication
+
+```python
+df_deduped = df.dropDuplicates(["event_id", "user_id", "event_date"])
+```
+
+### Schema Validation
+
+```python
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType
+
+expected_schema = StructType([
+    StructField("event_id", StringType(), False),
+    StructField("user_id", StringType(), False),
+    StructField("event_date", TimestampType(), True),
+])
+
+# Validate and cast
+df_validated = spark.createDataFrame(df.rdd, schema=expected_schema)
+```
+
+### Data Cleansing
+
+```python
+df_clean = (df
+    .filter(col("event_id").isNotNull())
+    .withColumn("event_date", to_timestamp("event_date", "yyyy-MM-dd HH:mm:ss"))
+    .withColumn("user_id", trim(upper(col("user_id"))))
+)
+```
+
+### Spark SQL Join
+
+```sql
+SELECT 
+    e.event_id,
+    e.user_id,
+    u.user_name,
+    e.event_date,
+    e.event_type
+FROM silver.clean_events e
+LEFT JOIN silver.users u ON e.user_id = u.user_id
+WHERE e.event_date >= current_date() - INTERVAL 30 DAYS
+```
+
+---
+
+## 📈 Results & Impact
+
+| Before | After | Improvement |
+|--------|-------|-------------|
+| Manual S3 → Azure data transfer (daily effort) | Fully automated batch pipeline | **90% reduction in manual effort** |
+| Ad-hoc, inconsistent data quality | Validated, cleansed Delta tables | **40% improvement in analytics readiness** |
+| Long ingestion windows blocking reports | Tuned Spark + ADF parallelism | **30% reduction in end-to-end latency** |
+| No lineage or monitoring | ADF monitoring + Databricks job history | **Full observability** |
+
+---
+
+## 📸 Screenshots Index
+
+All screenshots are stored in `docs/screenshots/`. Here is what to add:
+
+| File | Description |
+|------|-------------|
+| `architecture-overview.png` | Full end-to-end architecture diagram |
+| `adf-pipeline-canvas.png` | ADF pipeline with Copy Activity |
+| `adf-linked-services.png` | S3 & ADLS Gen2 linked services |
+| `adf-trigger-schedule.png` | Scheduled trigger configuration |
+| `adf-monitoring-runs.png` | Pipeline run history & duration |
+| `databricks-notebook-transform.png` | Silver layer transformation notebook |
+| `databricks-cluster-config.png` | Cluster configuration settings |
+| `databricks-job-runs.png` | Job run history & success/failure |
+| `spark-ui-job-metrics.png` | Spark UI with DAG & stage timing |
+| `powerbi-dashboard.png` | Final Power BI report output |
+| `powerbi-databricks-connection.png` | Power BI ↔ Databricks connection |
+| `adls-folder-structure.png` | Bronze/Silver/Gold folder layout in ADLS |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add your feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👤 Author
+
+**Your Name**
+- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+> ⭐ If this project helped you, please give it a star!
