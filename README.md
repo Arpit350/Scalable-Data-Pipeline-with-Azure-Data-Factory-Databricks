@@ -1,6 +1,6 @@
 ## 📌 Project Overview
 
-This project implements a **cloud-native, scalable batch ingestion pipeline** that automates the movement and transformation of data from **AWS S3 → Azure ADLS Gen2**, powered by **Azure Data Factory (ADF)** for orchestration and **Azure Databricks** for heavy-lift PySpark transformations.
+This project implements a **cloud-native, scalable batch ingestion pipeline** that automates the movement and transformation of data from **Azure Blob Storage → Azure ADLS Gen2**, powered by **Azure Data Factory (ADF)** for orchestration and **Azure Databricks** for heavy-lift PySpark transformations.
 
 ### Key Achievements
 
@@ -44,8 +44,8 @@ adf-databricks-pipeline/
 ├── README.md                          # Project documentation
 │
 ├── adf-pipelines/                     # ADF Pipeline JSON definitions
-│   ├── pipeline_s3_to_adls.json       # Main ingestion pipeline
-│   ├── linked_service_s3.json         # AWS S3 linked service config
+│   ├── pipeline_Blob_storge_to_adls.json       # Main ingestion pipeline
+│   ├── linked_service_blob_storage.json         # Blob_storge linked service config
 │   ├── linked_service_adls.json       # ADLS Gen2 linked service config
 │   └── trigger_daily_batch.json       # Scheduled trigger definition
 │
@@ -80,7 +80,7 @@ adf-databricks-pipeline/
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Source** | AWS S3 | Raw data storage |
+| **Source** |  Blob_storge | Raw data storage |
 | **Orchestration** | Azure Data Factory | Pipeline scheduling & copy activity |
 | **Storage** | Azure ADLS Gen2 | Centralized data lake (Bronze/Silver/Gold) |
 | **Compute** | Azure Databricks | PySpark & Spark SQL transformation jobs |
@@ -94,8 +94,8 @@ adf-databricks-pipeline/
 
 ### 1. Ingestion Layer — Azure Data Factory
 
-The ADF pipeline automates batch data movement from AWS S3 to ADLS Gen2 using:
-- **Linked Services** for S3 and ADLS Gen2 connections
+The ADF pipeline automates batch data movement from Blob_storge to ADLS Gen2 using:
+- **Linked Services** for Blob_storge and ADLS Gen2 connections
 - **Copy Activity** for efficient bulk data transfer
 - **Parameterized pipelines** for dynamic source/sink paths
 - **Scheduled triggers** for fully automated daily batch runs
