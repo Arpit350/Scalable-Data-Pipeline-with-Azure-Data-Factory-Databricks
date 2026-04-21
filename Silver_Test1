@@ -1,0 +1,272 @@
+# =============================================================================
+# silver/silver_transformation.py
+# Silver Layer — Cleansed & Conformed Data (SQL-Based Transformations)
+#
+# Responsibilities:
+#   1. Read from Bronze Delta table
+#   2. Deduplicate on composite keys (DEST_COUNTRY_NAME + ORIGIN_COUNTRY_NAME)
+#   3. Null handling and data quality enforcement
+#   4. Standardize formats (country names, uppercase)
+#   5. Type casting to final Silver schema
+#   6. MERGE (SCD Type 1 upsert) into Silver Delta table
+# =============================================================================
+
+from pyspark.sql import SparkSession
+from datetime import date
+import logging
+
+# Configuration constants
+BRONZE_TABLE = "bronze_orders"
+SILVER_TABLE = "silver_country_flights"
+DEDUP_KEYS = ["DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME"]
+CATALOG = "databricks_dlt"
+SCHEMA = "sample_dlt_table"
+
+# Utility functions
+def get_spark(app_name: str) -> SparkSession:
+    """Get or create Spark session."""
+    return SparkSession.builder.appName(app_name).getOrCreate()
+
+def get_logger(name: str):
+    """Get a logger instance."""
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    return logger
+
+def apply_delta_properties(spark: SparkSession, table_name: str) -> None:
+    """Apply Delta table properties."""
+    logger = get_logger("delta_properties")
+    logger.info(f"Delta properties already set in CREATE TABLE for {table_name}")
+
+def assert_not_empty(df) -> None:
+    """Assert that DataFrame is not empty."""
+    if df.count() == 0:
+        raise ValueError("DataFrame is empty")
+
+logger = get_logger("silver_transformation")
+
+# ─── 1. Create Silver Table ─────────────────────────────────────────────────
+def create_silver_table(spark: SparkSession) -> None:
+    """Create Silver table if it does not exist."""
+    logger.info(f"Creating Silver table: {SILVER_TABLE}")
+    spark.sql(f"""
+        CREATE TABLE IF NOT EXISTS {CATALOG}.{SCHEMA}.{SILVER_TABLE} (
+            dest_country STRING NOT NULL,
+            origin_country STRING NOT NULL,
+            flight_count INT,
+            ingestion_year INT,
+            ingestion_month INT,
+            _silver_processed_at TIMESTAMP,
+            _source_batch_id STRING
+        )
+        USING DELTA
+        PARTITIONED BY (ingestion_year, ingestion_month)
+        TBLPROPERTIES (
+            'delta.autoOptimize.optimizeWrite' = 'true',
+            'delta.autoOptimize.autoCompact' = 'true',
+            'delta.enableChangeDataFeed' = 'true'
+        )
+    """)
+    logger.info("Silver table created successfully")
+
+
+# ─── 2. Bronze to Silver Transformation (MERGE) ──────────────────────────────
+def transform_and_merge(spark: SparkSession, partition_dt: str) -> None:
+    """
+    Read Bronze, apply transformations, deduplicate, and MERGE into Silver.
+    Uses SCD Type 1 strategy (overwrite with latest).
+    """
+    logger.info(f"Starting Silver transformation for partition: {partition_dt}")
+    
+    merge_sql = f"""
+    MERGE INTO {CATALOG}.{SCHEMA}.{SILVER_TABLE} AS target
+    USING (
+        WITH bronze_ranked AS (
+            SELECT
+                DEST_COUNTRY_NAME,
+                ORIGIN_COUNTRY_NAME,
+                count,
+                _batch_id,
+                _ingested_at,
+                ROW_NUMBER() OVER (
+                    PARTITION BY DEST_COUNTRY_NAME, ORIGIN_COUNTRY_NAME 
+                    ORDER BY _ingested_at DESC
+                ) AS _rn
+            FROM {CATALOG}.{SCHEMA}.{BRONZE_TABLE}
+            WHERE _partition_dt = '{partition_dt}'
+        ),
+        deduped AS (
+            SELECT
+                DEST_COUNTRY_NAME,
+                ORIGIN_COUNTRY_NAME,
+                count,
+                _batch_id,
+                _ingested_at
+            FROM bronze_ranked
+            WHERE _rn = 1
+                AND DEST_COUNTRY_NAME IS NOT NULL
+                AND ORIGIN_COUNTRY_NAME IS NOT NULL
+        ),
+        standardized AS (
+            SELECT
+                UPPER(TRIM(DEST_COUNTRY_NAME)) AS dest_country,
+                UPPER(TRIM(ORIGIN_COUNTRY_NAME)) AS origin_country,
+                COALESCE(count, 0) AS flight_count,
+                _batch_id,
+                _ingested_at
+            FROM deduped
+        ),
+        final_transformation AS (
+            SELECT
+                dest_country,
+                origin_country,
+                flight_count,
+                YEAR(_ingested_at) AS ingestion_year,
+                MONTH(_ingested_at) AS ingestion_month,
+                CURRENT_TIMESTAMP() AS _silver_processed_at,
+                CAST(_batch_id AS STRING) AS _source_batch_id
+            FROM standardized
+        )
+        SELECT * FROM final_transformation
+    ) AS source
+    ON target.dest_country = source.dest_country 
+        AND target.origin_country = source.origin_country
+        AND target.ingestion_year = source.ingestion_year
+        AND target.ingestion_month = source.ingestion_month
+    WHEN MATCHED THEN
+        UPDATE SET
+            flight_count = source.flight_count,
+            _silver_processed_at = source._silver_processed_at,
+            _source_batch_id = source._source_batch_id
+    WHEN NOT MATCHED THEN
+        INSERT (
+            dest_country, origin_country, flight_count,
+            ingestion_year, ingestion_month,
+            _silver_processed_at, _source_batch_id
+        )
+        VALUES (
+            source.dest_country, source.origin_country, source.flight_count,
+            source.ingestion_year, source.ingestion_month,
+            source._silver_processed_at, source._source_batch_id
+        )
+    """
+    
+    spark.sql(merge_sql)
+    logger.info("Silver MERGE transformation complete")
+
+
+# ─── 3. Validation ──────────────────────────────────────────────────────────
+def validate_silver(spark: SparkSession, partition_dt: str) -> None:
+    """Post-transformation validation and quality checks."""
+    logger.info("Running Silver layer validation")
+    
+    # Overall metrics
+    validation_sql = f"""
+    SELECT
+        CAST(CURRENT_DATE AS STRING) AS transformation_date,
+        COUNT(*) AS total_rows,
+        COUNT(DISTINCT dest_country) AS unique_destinations,
+        COUNT(DISTINCT origin_country) AS unique_origins,
+        SUM(flight_count) AS total_flights,
+        COUNT(CASE WHEN flight_count = 0 THEN 1 END) AS zero_flights,
+        COUNT(CASE WHEN flight_count < 0 THEN 1 END) AS negative_flights
+    FROM {CATALOG}.{SCHEMA}.{SILVER_TABLE}
+    WHERE ingestion_year = YEAR(CURRENT_DATE) 
+      AND ingestion_month = MONTH(CURRENT_DATE)
+    """
+    
+    result = spark.sql(validation_sql)
+    result.show(truncate=False)
+    logger.info("Validation complete")
+    
+    # Data quality checks
+    logger.info("Running data quality checks...")
+    quality_sql = f"""
+    SELECT
+        'Negative Flight Count' AS check_type,
+        COUNT(*) AS issue_count
+    FROM {CATALOG}.{SCHEMA}.{SILVER_TABLE}
+    WHERE flight_count < 0
+    """
+    
+    spark.sql(quality_sql).show(truncate=False)
+
+
+# ─── 4. Reconciliation ──────────────────────────────────────────────────────
+def reconcile_layers(spark: SparkSession, partition_dt: str) -> None:
+    """Compare Bronze vs Silver row counts."""
+    logger.info("Reconciling Bronze vs Silver layers...")
+    
+    reconcile_sql = f"""
+    SELECT
+        'BRONZE' AS layer,
+        COUNT(*) AS total_records,
+        SUM(count) AS total_flights
+    FROM {CATALOG}.{SCHEMA}.{BRONZE_TABLE}
+    WHERE _partition_dt = '{partition_dt}'
+    
+    UNION ALL
+    
+    SELECT
+        'SILVER' AS layer,
+        COUNT(*) AS total_records,
+        SUM(flight_count) AS total_flights
+    FROM {CATALOG}.{SCHEMA}.{SILVER_TABLE}
+    WHERE ingestion_year = YEAR(CURRENT_DATE) 
+      AND ingestion_month = MONTH(CURRENT_DATE)
+    """
+    
+    spark.sql(reconcile_sql).show(truncate=False)
+
+
+# ─── 5. Read Bronze (only today's new partition) ──────────────────────────────
+def read_bronze(spark: SparkSession, partition_dt: str = None) -> None:
+    """Verify Bronze data availability."""
+    if partition_dt:
+        logger.info(f"Checking Bronze partition: {partition_dt}")
+        count = spark.sql(f"""
+            SELECT COUNT(*) as cnt FROM {CATALOG}.{SCHEMA}.{BRONZE_TABLE}
+            WHERE _partition_dt = '{partition_dt}'
+        """).collect()[0][0]
+        logger.info(f"Bronze records found: {count:,}")
+    else:
+        logger.info("Full read from Bronze table")
+        count = spark.sql(f"SELECT COUNT(*) as cnt FROM {CATALOG}.{SCHEMA}.{BRONZE_TABLE}").collect()[0][0]
+        logger.info(f"Total Bronze records: {count:,}")
+
+
+# ─── Entrypoint ─────────────────────────────────────────────────────────────────
+def run(partition_dt: str = None) -> None:
+    spark = get_spark("Silver_Transformation")
+    partition_dt = partition_dt or str(date.today())
+
+    logger.info(f"=== SILVER LAYER START | partition={partition_dt} ===")
+
+    try:
+        # Verify Bronze data exists
+        read_bronze(spark, partition_dt)
+        
+        # Create Silver table if it doesn't exist
+        create_silver_table(spark)
+        
+        # Apply transformations and merge
+        transform_and_merge(spark, partition_dt)
+        
+        # Validate transformation
+        validate_silver(spark, partition_dt)
+        
+        # Reconcile layers
+        reconcile_layers(spark, partition_dt)
+        
+        # Apply Delta properties
+        apply_delta_properties(spark, f"{CATALOG}.{SCHEMA}.{SILVER_TABLE}")
+        
+        logger.info("=== SILVER LAYER COMPLETE ===")
+        
+    except Exception as e:
+        logger.error(f"Silver transformation failed: {str(e)}")
+        raise
+
+
+# Uncomment to run with custom partition date:
+# run(partition_dt="2026-04-22")
