@@ -140,6 +140,9 @@ PySpark jobs process data across a **Medallion Architecture** (Bronze → Silver
 >  Databricks notebook execution with Silver transformation code
 > <img width="1916" height="844" alt="Screenshot 2026-04-22 022742" src="https://github.com/user-attachments/assets/56b37add-7b15-47b5-ab32-6afc45ee2374" />
 
+>  Databricks notebook execution with Gold transformation code
+<img width="1916" height="844" alt="Screenshot 2026-04-22 022742" src="https://github.com/user-attachments/assets/6ede447e-0031-488f-b38f-af7a647c3b92" />
+
 
 > 📸 **Screenshot Needed:** Databricks cluster configuration (runtime, node types)
 > → `docs/screenshots/databricks-cluster-config.png`
