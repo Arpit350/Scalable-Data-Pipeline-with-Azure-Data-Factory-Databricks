@@ -134,8 +134,9 @@ PySpark jobs process data across a **Medallion Architecture** (Bronze → Silver
 - Optimized for Power BI consumption
 - Delta table `OPTIMIZE` and `ZORDER` for query performance
 
-> 📸 **Screenshot Needed:** Databricks notebook execution with transformation code
-> → `docs/screenshots/databricks-notebook-transform.png`
+>  Databricks notebook execution with  Bronze transformation code
+> <img width="1775" height="798" alt="Screenshot 2026-04-22 011831" src="https://github.com/user-attachments/assets/1879233d-da26-4c62-85c4-cb9e3e7f0611" />
+
 
 > 📸 **Screenshot Needed:** Databricks cluster configuration (runtime, node types)
 > → `docs/screenshots/databricks-cluster-config.png`
