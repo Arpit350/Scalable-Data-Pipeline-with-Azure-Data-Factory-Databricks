@@ -20,7 +20,7 @@ This project implements a **cloud-native, scalable batch ingestion pipeline** th
 ├──────────────┬──────────────────────┬──────────────┬───────────────┤
 │   Source     │    Orchestration     │  Transform   │   Consume     │
 │              │                      │              │               │
-│ Blol storage │  Azure Data Factory  │  Databricks  │  Power BI     │
+│ Blob storage │  Azure Data Factory  │  Databricks  │  Power BI     │
 │  (Raw Data)  │  (Batch Pipelines)   │  (PySpark)   │  (Reports)    │
 │              │         ↓            │              │               │
 │  CSV / JSON  │  Linked Services     │  Bronze Layer│  Dashboards   │
