@@ -143,13 +143,14 @@ PySpark jobs process data across a **Medallion Architecture** (Bronze → Silver
 >  Databricks notebook execution with Gold transformation code
 >  <img width="1919" height="837" alt="Screenshot 2026-04-22 032630" src="https://github.com/user-attachments/assets/57dbd9db-39aa-43d5-8fb4-a988485c3cb7" />
 
+>  Databricks job run history / monitoring
+> <img width="1919" height="833" alt="Screenshot 2026-04-23 021311" src="https://github.com/user-attachments/assets/7528095e-af1e-4058-8068-83b6a6fe20a0" />
+
 
 
 > 📸 **Screenshot Needed:** Databricks cluster configuration (runtime, node types)
 > → `docs/screenshots/databricks-cluster-config.png`
 
-> 📸 **Screenshot Needed:** Databricks job run history / monitoring
-> → `docs/screenshots/databricks-job-runs.png`
 
 ---
 
