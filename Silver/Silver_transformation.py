@@ -1,15 +1,4 @@
-# =============================================================================
-# silver/silver_transformation.py
-# Silver Layer — Cleansed & Conformed Data (SQL-Based Transformations)
-#
-# Responsibilities:
-#   1. Read from Bronze Delta table
-#   2. Deduplicate on composite keys (DEST_COUNTRY_NAME + ORIGIN_COUNTRY_NAME)
-#   3. Null handling and data quality enforcement
-#   4. Standardize formats (country names, uppercase)
-#   5. Type casting to final Silver schema
-#   6. MERGE (SCD Type 1 upsert) into Silver Delta table
-# =============================================================================
+
 # =============================================================================
 # Silver Layer Transformation (Pure PySpark DataFrame API)
 # Cleansed & Conformed Data
