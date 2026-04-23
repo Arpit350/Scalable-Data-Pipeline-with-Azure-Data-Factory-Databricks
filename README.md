@@ -176,7 +176,6 @@ Key optimizations applied to reduce latency by 30%:
 ### Prerequisites
 
 - Azure Subscription with ADF, ADLS Gen2, and Databricks workspace
-- AWS account with S3 access
 - Python 3.9+
 - Azure CLI and Databricks CLI installed
 
@@ -307,7 +306,7 @@ WHERE e.event_date >= current_date() - INTERVAL 30 DAYS
 
 | Before | After | Improvement |
 |--------|-------|-------------|
-| Manual S3 → Azure data transfer (daily effort) | Fully automated batch pipeline | **90% reduction in manual effort** |
+| Manual Blob storage → Azure data transfer (daily effort) | Fully automated batch pipeline | **90% reduction in manual effort** |
 | Ad-hoc, inconsistent data quality | Validated, cleansed Delta tables | **40% improvement in analytics readiness** |
 | Long ingestion windows blocking reports | Tuned Spark + ADF parallelism | **30% reduction in end-to-end latency** |
 | No lineage or monitoring | ADF monitoring + Databricks job history | **Full observability** |
@@ -322,7 +321,7 @@ All screenshots are stored in `docs/screenshots/`. Here is what to add:
 |------|-------------|
 | `architecture-overview.png` | Full end-to-end architecture diagram |
 | `adf-pipeline-canvas.png` | ADF pipeline with Copy Activity |
-| `adf-linked-services.png` | S3 & ADLS Gen2 linked services |
+| `adf-linked-services.png` | Blob storage & ADLS Gen2 linked services |
 | `adf-trigger-schedule.png` | Scheduled trigger configuration |
 | `adf-monitoring-runs.png` | Pipeline run history & duration |
 | `databricks-notebook-transform.png` | Silver layer transformation notebook |
