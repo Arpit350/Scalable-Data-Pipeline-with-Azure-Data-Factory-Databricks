@@ -341,7 +341,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 👤 Author
 
-**ARPIT SRIVASYAVA**
+**ARPIT SRIVASTAVA**
 - LinkedIn: [arpit-srivastava2](https://linkedin.com/in/arpit-srivastava2/)
 - GitHub: [Arpit350](https://github.com/Arpit350)
 
