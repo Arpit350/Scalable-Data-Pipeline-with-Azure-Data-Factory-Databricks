@@ -353,7 +353,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 ## 👤 Author
 
 **Your Name**
-- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
+- LinkedIn: [arpit-srivastava2](https://linkedin.com/in/arpit-srivastava2/)
 - GitHub: [@yourusername](https://github.com/yourusername)
 
 ---
