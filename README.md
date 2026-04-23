@@ -147,11 +147,6 @@ PySpark jobs process data across a **Medallion Architecture** (Bronze → Silver
 > <img width="1919" height="833" alt="Screenshot 2026-04-23 021311" src="https://github.com/user-attachments/assets/7528095e-af1e-4058-8068-83b6a6fe20a0" />
 
 
-
-> 📸 **Screenshot Needed:** Databricks cluster configuration (runtime, node types)
-> → `docs/screenshots/databricks-cluster-config.png`
-
-
 ---
 
 ### 3. Performance Tuning
@@ -162,12 +157,6 @@ Key optimizations applied to reduce latency by 30%:
 - **ADF Parallelism:** Configured Copy Activity `parallelCopies` and `dataIntegrationUnits`
 - **Delta Optimization:** `OPTIMIZE` + `ZORDER BY` on high-cardinality join keys
 - **Partitioning Strategy:** Date-based partitioning to minimize data scans
-
-> 📸 **Screenshot Needed:** Spark UI showing job DAG and stage metrics
-> → `docs/screenshots/spark-ui-job-metrics.png`
-
-> 📸 **Screenshot Needed:** ADF pipeline monitoring with run duration metrics
-> → `docs/screenshots/adf-monitoring-runs.png`
 
 ---
 
@@ -182,7 +171,7 @@ Key optimizations applied to reduce latency by 30%:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/adf-databricks-pipeline.git
+git clone https://github.com/Arpit350adf-databricks-pipeline.git
 cd adf-databricks-pipeline
 ```
 
@@ -352,9 +341,9 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 👤 Author
 
-**Your Name**
+**ARPIT SRIVASYAVA**
 - LinkedIn: [arpit-srivastava2](https://linkedin.com/in/arpit-srivastava2/)
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [Arpit350](https://github.com/Arpit350)
 
 ---
 
