@@ -171,21 +171,6 @@ Key optimizations applied to reduce latency by 30%:
 
 ---
 
-### 4. Output — Power BI
-
-Gold layer Delta tables are connected to Power BI via:
-- Azure Databricks connector in Power BI Desktop
-- DirectQuery / Import mode based on table size
-- Scheduled refresh aligned with pipeline completion
-
-> 📸 **Screenshot Needed:** Power BI dashboard built on the pipeline output
-> → `docs/screenshots/powerbi-dashboard.png`
-
-> 📸 **Screenshot Needed:** Power BI data source connection to Databricks
-> → `docs/screenshots/powerbi-databricks-connection.png`
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
