@@ -302,27 +302,6 @@ WHERE e.event_date >= current_date() - INTERVAL 30 DAYS
 
 ---
 
-## 📸 Screenshots Index
-
-All screenshots are stored in `docs/screenshots/`. Here is what to add:
-
-| File | Description |
-|------|-------------|
-| `architecture-overview.png` | Full end-to-end architecture diagram |
-| `adf-pipeline-canvas.png` | ADF pipeline with Copy Activity |
-| `adf-linked-services.png` | Blob storage & ADLS Gen2 linked services |
-| `adf-trigger-schedule.png` | Scheduled trigger configuration |
-| `adf-monitoring-runs.png` | Pipeline run history & duration |
-| `databricks-notebook-transform.png` | Silver layer transformation notebook |
-| `databricks-cluster-config.png` | Cluster configuration settings |
-| `databricks-job-runs.png` | Job run history & success/failure |
-| `spark-ui-job-metrics.png` | Spark UI with DAG & stage timing |
-| `powerbi-dashboard.png` | Final Power BI report output |
-| `powerbi-databricks-connection.png` | Power BI ↔ Databricks connection |
-| `adls-folder-structure.png` | Bronze/Silver/Gold folder layout in ADLS |
-
----
-
 ## 🤝 Contributing
 
 1. Fork the repository
