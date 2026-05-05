@@ -39,39 +39,23 @@ This project implements a **cloud-native, scalable batch ingestion pipeline** th
 ## 📂 Repository Structure
 
 ```
-adf-databricks-pipeline/
+Scalable-Data-Pipeline-with-Azure-Data-Factory-Databricks/
 │
 ├── README.md                          # Project documentation
+├── LICENSE                            # MIT License
 │
-├── adf-pipelines/                              # ADF Pipeline JSON definitions
-│   ├── pipeline_Blob_storage_to_adls.json      # Main ingestion pipeline
-│   ├── linked_service_blob_storage.json        # Blob_storge linked service config
-│   ├── linked_service_adls.json                # ADLS Gen2 linked service config
-│   └── trigger_daily_batch.json                # Scheduled trigger definition
+├── Bronze/                            # Bronze layer Databricks notebook
+│   └── 01_bronze_ingestion.py         # Raw data landing & schema enforcement
 │
-├── notebooks/                                 # Databricks notebooks
-│   ├── 01_bronze_ingestion.py                 # Raw data landing
-│   ├── 02_silver_transformation.py            # Cleansing & deduplication
-│   ├── 03_gold_aggregation.py                 # Analytics-ready aggregations
-│   └── utils/
-│       ├── schema_validator.py                # Schema validation helpers
-│       └── spark_config.py                    # Spark tuning configurations
+├── Silver/                            # Silver layer Databricks notebook
+│   └── 02_silver_transformation.py    # Cleansing & deduplication
 │
-├── scripts/                                   # Utility scripts
-│   ├── deploy_adf_pipeline.sh                 # CI/CD deployment script
-│   └── run_databricks_job.sh                  # Trigger Databricks job via CLI
-│
-├── config/                                    # Environment configuration
-│   ├── dev.env.example                        # Dev environment variables template
-│   └── prod.env.example                       # Prod environment variables template
-│
-├── architecture/                              # Architecture diagrams & docs
-│   └── pipeline_design.md                     # Detailed design document
+├── Gold/                              # Gold layer Databricks notebook
+│   └── 03_gold_aggregation.py         # Analytics-ready aggregations
 │
 └── docs/
-    └── screenshots/                           # Tool screenshots (add yours here)
-        ├── README.md                          # Screenshot guide
-        └── [ADD SCREENSHOTS HERE]
+    └── screenshots/                   # Tool screenshots
+        └── README.md                  # Screenshot guide
 ```
 
 ---
@@ -80,7 +64,7 @@ adf-databricks-pipeline/
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Source** |  Blob_storge | Raw data storage |
+| **Source** | Azure Blob Storage | Raw data storage |
 | **Orchestration** | Azure Data Factory | Pipeline scheduling & copy activity |
 | **Storage** | Azure ADLS Gen2 | Centralized data lake (Bronze/Silver/Gold) |
 | **Compute** | Azure Databricks | PySpark & Spark SQL transformation jobs |
@@ -94,8 +78,8 @@ adf-databricks-pipeline/
 
 ### 1. Ingestion Layer — Azure Data Factory
 
-The ADF pipeline automates batch data movement from Blob_storge to ADLS Gen2 using:
-- **Linked Services** for Blob_storge and ADLS Gen2 connections
+The ADF pipeline automates batch data movement from Azure Blob Storage to ADLS Gen2 using:
+- **Linked Services** for Azure Blob Storage and ADLS Gen2 connections
 - **Copy Activity** for efficient bulk data transfer
 - **Parameterized pipelines** for dynamic source/sink paths
 - **Scheduled triggers** for fully automated daily batch runs
@@ -178,22 +162,51 @@ cd Scalable-Data-Pipeline-with-Azure-Data-Factory-Databricks
 ### 2. Configure Environment Variables
 
 ```bash
-cp config/dev.env.example config/dev.env
-# Edit dev.env with your Azure, AWS, and Databricks credentials
+Create a .env file at the root of the project and fill in your Azure and Databricks credentials:
+# Azure Storage
+AZURE_STORAGE_ACCOUNT_NAME=<your-storage-account>
+AZURE_STORAGE_ACCOUNT_KEY=<your-storage-key>
+AZURE_BLOB_CONTAINER=<your-blob-container>
+
+# Azure ADLS Gen2
+ADLS_ACCOUNT_NAME=<your-adls-account>
+ADLS_FILESYSTEM=<your-adls-filesystem>
+
+# Azure Data Factory
+ADF_NAME=<your-adf-name>
+RESOURCE_GROUP=<your-resource-group>
+SUBSCRIPTION_ID=<your-subscription-id>
+
+# Databricks
+DATABRICKS_HOST=https://<your-databricks-workspace>.azuredatabricks.net
+DATABRICKS_TOKEN=<your-databricks-pat-token>
 ```
 
 ### 3. Deploy ADF Pipelines
 
 ```bash
-# Deploy using Azure CLI
-bash scripts/deploy_adf_pipeline.sh --env dev
+# Use the Azure Portal or Azure CLI to create your ADF pipelines with Linked Services pointing to your Blob Storage and ADLS Gen2 accounts, then configure a scheduled trigger for daily batch runs.
+
+# Login to Azure
+az login
+
+# Set your subscription
+az account set --subscription <your-subscription-id>
 ```
 
 ### 4. Import Databricks Notebooks
 
 ```bash
-# Import notebooks to your Databricks workspace
-databricks workspace import_dir notebooks /Shared/adf-pipeline
+# Upload the notebooks from the Bronze/, Silver/, and Gold/ folders to your Databricks workspace:e
+
+# Import Bronze notebook
+databricks workspace import Bronze/01_bronze_ingestion.py /Shared/adf-pipeline/01_bronze_ingestion --language PYTHON --overwrite
+
+# Import Silver notebook
+databricks workspace import Silver/02_silver_transformation.py /Shared/adf-pipeline/02_silver_transformation --language PYTHON --overwrite
+
+# Import Gold notebook
+databricks workspace import Gold/03_gold_aggregation.py /Shared/adf-pipeline/03_gold_aggregation --language PYTHON --overwrite
 ```
 
 ### 5. Run the Pipeline
@@ -203,7 +216,7 @@ databricks workspace import_dir notebooks /Shared/adf-pipeline
 az datafactory pipeline create-run \
   --factory-name <your-adf-name> \
   --resource-group <your-rg> \
-  --name pipeline_Blob_storge_to_adls
+  --name pipeline_Azure Blob Storage_to_adls
 ```
 
 ---
@@ -211,7 +224,7 @@ az datafactory pipeline create-run \
 ## 📊 Data Flow Details
 
 ```
-Azure Blob_storge (Source)
+Azure Blob storge (Source)
     │
     │  [ADF Copy Activity — batch scheduled]
     ▼
@@ -268,6 +281,8 @@ df_validated = spark.createDataFrame(df.rdd, schema=expected_schema)
 ### Data Cleansing
 
 ```python
+from pyspark.sql.functions import col, to_timestamp, trim, upper
+
 df_clean = (df
     .filter(col("event_id").isNotNull())
     .withColumn("event_date", to_timestamp("event_date", "yyyy-MM-dd HH:mm:ss"))
@@ -295,7 +310,7 @@ WHERE e.event_date >= current_date() - INTERVAL 30 DAYS
 
 | Before | After | Improvement |
 |--------|-------|-------------|
-| Manual Blob storage → Azure data transfer (daily effort) | Fully automated batch pipeline | **90% reduction in manual effort** |
+| Manual Blob Storage → ADLS data transfer (daily effort)| Fully automated batch pipeline | **90% reduction in manual effort** |
 | Ad-hoc, inconsistent data quality | Validated, cleansed Delta tables | **40% improvement in analytics readiness** |
 | Long ingestion windows blocking reports | Tuned Spark + ADF parallelism | **30% reduction in end-to-end latency** |
 | No lineage or monitoring | ADF monitoring + Databricks job history | **Full observability** |
