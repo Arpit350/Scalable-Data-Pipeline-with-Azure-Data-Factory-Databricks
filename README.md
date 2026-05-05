@@ -43,34 +43,34 @@ adf-databricks-pipeline/
 │
 ├── README.md                          # Project documentation
 │
-├── adf-pipelines/                            # ADF Pipeline JSON definitions
-│   ├── pipeline_Blob_storge_to_adls.csv      # Main ingestion pipeline
-│   ├── linked_service_blob_storage.csv       # Blob_storge linked service config
-│   ├── linked_service_adls.json              # ADLS Gen2 linked service config
-│   └── trigger_daily_batch.json              # Scheduled trigger definition
+├── adf-pipelines/                              # ADF Pipeline JSON definitions
+│   ├── pipeline_Blob_storage_to_adls.json      # Main ingestion pipeline
+│   ├── linked_service_blob_storage.json        # Blob_storge linked service config
+│   ├── linked_service_adls.json                # ADLS Gen2 linked service config
+│   └── trigger_daily_batch.json                # Scheduled trigger definition
 │
-├── notebooks/                                # Databricks notebooks
-│   ├── 01_bronze_ingestion.py                # Raw data landing
-│   ├── 02_silver_transformation.py           # Cleansing & deduplication
-│   ├── 03_gold_aggregation.py                # Analytics-ready aggregations
+├── notebooks/                                 # Databricks notebooks
+│   ├── 01_bronze_ingestion.py                 # Raw data landing
+│   ├── 02_silver_transformation.py            # Cleansing & deduplication
+│   ├── 03_gold_aggregation.py                 # Analytics-ready aggregations
 │   └── utils/
-│       ├── schema_validator.py               # Schema validation helpers
-│       └── spark_config.py                   # Spark tuning configurations
+│       ├── schema_validator.py                # Schema validation helpers
+│       └── spark_config.py                    # Spark tuning configurations
 │
-├── scripts/                                  # Utility scripts
-│   ├── deploy_adf_pipeline.sh                # CI/CD deployment script
-│   └── run_databricks_job.sh                 # Trigger Databricks job via CLI
+├── scripts/                                   # Utility scripts
+│   ├── deploy_adf_pipeline.sh                 # CI/CD deployment script
+│   └── run_databricks_job.sh                  # Trigger Databricks job via CLI
 │
-├── config/                                   # Environment configuration
-│   ├── dev.env.example                       # Dev environment variables template
-│   └── prod.env.example                      # Prod environment variables template
+├── config/                                    # Environment configuration
+│   ├── dev.env.example                        # Dev environment variables template
+│   └── prod.env.example                       # Prod environment variables template
 │
-├── architecture/                             # Architecture diagrams & docs
-│   └── pipeline_design.md                    # Detailed design document
+├── architecture/                              # Architecture diagrams & docs
+│   └── pipeline_design.md                     # Detailed design document
 │
 └── docs/
-    └── screenshots/                          # Tool screenshots (add yours here)
-        ├── README.md                         # Screenshot guide
+    └── screenshots/                           # Tool screenshots (add yours here)
+        ├── README.md                          # Screenshot guide
         └── [ADD SCREENSHOTS HERE]
 ```
 
@@ -171,8 +171,8 @@ Key optimizations applied to reduce latency by 30%:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Arpit350adf-databricks-pipeline.git
-cd adf-databricks-pipeline
+git clone https://github.com/Arpit350/Scalable-Data-Pipeline-with-Azure-Data-Factory-Databricks.git
+cd Scalable-Data-Pipeline-with-Azure-Data-Factory-Databricks
 ```
 
 ### 2. Configure Environment Variables
@@ -203,7 +203,7 @@ databricks workspace import_dir notebooks /Shared/adf-pipeline
 az datafactory pipeline create-run \
   --factory-name <your-adf-name> \
   --resource-group <your-rg> \
-  --name pipeline_s3_to_adls
+  --name pipeline_Blob_storge_to_adls
 ```
 
 ---
@@ -211,7 +211,7 @@ az datafactory pipeline create-run \
 ## 📊 Data Flow Details
 
 ```
-AWS S3 (Source)
+Azure Blob_storge (Source)
     │
     │  [ADF Copy Activity — batch scheduled]
     ▼
